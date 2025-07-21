@@ -93,20 +93,21 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       body: Center(
         child: SingleChildScrollView(
           child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            elevation: 10,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
             margin: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            color: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(36.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.event_available, size: 48, color: Colors.blue.shade700),
-                    SizedBox(height: 16),
-                    Text('Booking Baru', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-                    SizedBox(height: 32),
+                    Icon(Icons.event_available, size: 54, color: Colors.blue.shade700),
+                    SizedBox(height: 18),
+                    Text('Booking Baru', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                    SizedBox(height: 36),
                     DropdownButtonFormField<int>(
                       value: _selectedBarberId,
                       items: _barbers.isEmpty
@@ -118,16 +119,19 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       onChanged: (val) => setState(() => _selectedBarberId = val),
                       decoration: InputDecoration(
                         labelText: 'Pilih Barber',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.blue.shade50,
+                        contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                       ),
                       validator: (val) => val == null ? 'Pilih barber' : null,
                       disabledHint: _barbers.isEmpty ? Text('Barber belum tersedia') : null,
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 18),
                     ListTile(
-                      title: Text(_selectedDate == null ? 'Pilih Tanggal' : _selectedDate!.toLocal().toString().split(' ')[0]),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      tileColor: Colors.blue.shade50,
+                      title: Text(_selectedDate == null ? 'Pilih Tanggal' : _selectedDate!.toLocal().toString().split(' ')[0], style: TextStyle(fontSize: 16)),
                       trailing: Icon(Icons.calendar_today, color: Colors.blue.shade700),
                       onTap: () async {
                         final picked = await showDatePicker(
@@ -139,8 +143,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         if (picked != null) setState(() => _selectedDate = picked);
                       },
                     ),
+                    SizedBox(height: 8),
                     ListTile(
-                      title: Text(_selectedTime == null ? 'Pilih Jam' : _selectedTime!.format(context)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      tileColor: Colors.blue.shade50,
+                      title: Text(_selectedTime == null ? 'Pilih Jam' : _selectedTime!.format(context), style: TextStyle(fontSize: 16)),
                       trailing: Icon(Icons.access_time, color: Colors.blue.shade700),
                       onTap: () async {
                         final picked = await showTimePicker(
@@ -150,20 +157,29 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         if (picked != null) setState(() => _selectedTime = picked);
                       },
                     ),
+                    SizedBox(height: 8),
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'Jumlah (Amount)',
                         prefixIcon: Icon(Icons.attach_money),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.blue.shade50,
+                        contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (val) => val == null || val.isEmpty ? 'Isi jumlah' : null,
                       onChanged: (val) => _amount = val,
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 28),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade100,
+                        foregroundColor: Colors.blue.shade900,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                       onPressed: _loading
                           ? null
                           : () async {
@@ -213,19 +229,20 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                                   ],
                                 )),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          padding: EdgeInsets.symmetric(vertical: 18),
+                          textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         onPressed: _loading ? null : _submit,
                         child: _loading
-                            ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : Text('Booking', style: TextStyle(fontSize: 18)),
+                            ? SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                            : Text('Booking'),
                       ),
                     ),
                   ],

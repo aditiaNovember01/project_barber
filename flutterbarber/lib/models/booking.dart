@@ -5,7 +5,7 @@ class Booking {
   final String bookingDate;
   final String bookingTime;
   final String status;
-  final int amount;
+  final String amount;
   final String paymentStatus;
   final String proofOfPayment;
   final String createdAt;
@@ -33,7 +33,7 @@ class Booking {
       bookingDate: json['booking_date'],
       bookingTime: json['booking_time'],
       status: json['status'],
-      amount: json['amount'],
+      amount: json['amount'].toString(),
       paymentStatus: json['payment_status'],
       proofOfPayment: json['proof_of_payment'],
       createdAt: json['created_at'],

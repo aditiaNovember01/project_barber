@@ -33,34 +33,63 @@ class _BookingScreenState extends State<BookingScreen> {
           }
           final bookings = snapshot.data!;
           return ListView.separated(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(18),
             itemCount: bookings.length,
-            separatorBuilder: (_, __) => SizedBox(height: 16),
+            separatorBuilder: (_, __) => SizedBox(height: 22),
             itemBuilder: (context, index) {
               final booking = bookings[index];
-              return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ListTile(
-                  contentPadding: EdgeInsets.all(16),
-                  leading: Icon(Icons.event_note, color: Colors.blue.shade700, size: 36),
-                  title: Text('Tanggal: ${booking.bookingDate}'),
+                  contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 22),
+                  leading: Icon(Icons.event_note, color: Colors.blue.shade700, size: 38),
+                  title: Text('Tanggal: ${booking.bookingDate}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Jam: ${booking.bookingTime}'),
-                      Text('Status: ${booking.status}', style: TextStyle(color: booking.status == 'pending' ? Colors.orange : Colors.green)),
-                      Text('Barber ID: ${booking.barberId}'),
+                      Text('Jam: ${booking.bookingTime}', style: TextStyle(fontSize: 15)),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: booking.status == 'pending' ? Colors.orange.shade50 : Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              booking.status,
+                              style: TextStyle(
+                                color: booking.status == 'pending' ? Colors.orange.shade700 : Colors.green.shade700,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      Text('Barber ID: ${booking.barberId}', style: TextStyle(fontSize: 13, color: Colors.grey)),
                     ],
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Rp${booking.amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-                      SizedBox(height: 4),
+                      Text('Rp${booking.amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 16)),
+                      SizedBox(height: 6),
                       booking.paymentStatus == 'unpaid'
-                          ? Icon(Icons.close, color: Colors.red, size: 18)
-                          : Icon(Icons.check_circle, color: Colors.green, size: 18),
+                          ? Icon(Icons.close, color: Colors.red, size: 20)
+                          : Icon(Icons.check_circle, color: Colors.green, size: 20),
                     ],
                   ),
                 ),

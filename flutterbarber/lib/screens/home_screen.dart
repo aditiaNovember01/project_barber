@@ -92,14 +92,15 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Row(
           children: [
             CircleAvatar(
+              radius: 28,
               backgroundColor: Colors.blue.shade100,
-              child: Icon(Icons.person, color: Colors.blue),
+              child: Icon(Icons.person, color: Colors.blue, size: 32),
             ),
-            SizedBox(width: 12),
+            SizedBox(width: 16),
             Expanded(
               child: Text(
                 userName != null ? 'Hai, $userName!' : 'Selamat datang!',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.blue.shade900),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade900),
               ),
             ),
           ],
@@ -119,9 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => BookingFormScreen()),
           );
         },
-        icon: Icon(Icons.add),
-        label: Text('Booking Baru'),
+        icon: Icon(Icons.add, size: 28),
+        label: Text('Booking Baru', style: TextStyle(fontSize: 18)),
         backgroundColor: Colors.blue.shade700,
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -134,10 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.only(top: 100, left: 16, right: 16, bottom: 16),
           children: [
-            Text('Barber Online', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-            SizedBox(height: 12),
+            Text('Barber Online', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+            SizedBox(height: 16),
             Container(
-              height: 140,
+              height: 160,
               child: loadingBarber
                   ? Center(child: CircularProgressIndicator())
                   : errorBarber != null
@@ -147,75 +150,86 @@ class _HomeScreenState extends State<HomeScreen> {
                           : ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: barbers.length,
-                              separatorBuilder: (_, __) => SizedBox(width: 16),
+                              separatorBuilder: (_, __) => SizedBox(width: 20),
                               itemBuilder: (context, index) {
                                 final barber = barbers[index];
-                                String baseUrl = 'http://192.168.1.11:8000';
+                                String baseUrl = 'http://10.176.85.163:8000';
                                 String photoUrl = '';
                                 if (barber.photo.isNotEmpty) {
                                   if (barber.photo.startsWith('http')) {
                                     photoUrl = barber.photo;
-                                  } else if (barber.photo.contains('storage/')) {
-                                    photoUrl = '$baseUrl/${barber.photo.startsWith('/') ? barber.photo.substring(1) : barber.photo}';
-                                  } else if (barber.photo.contains('barbers/')) {
-                                    photoUrl = '$baseUrl/storage/${barber.photo.startsWith('/') ? barber.photo.substring(1) : barber.photo}';
                                   } else {
                                     photoUrl = '$baseUrl/storage/barbers/${barber.photo}';
                                   }
                                 }
-                                print('Photo URL: $photoUrl');
                                 return Container(
-                                  width: 130,
-                                  height: 180,
-                                  child: Card(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    elevation: 4,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          photoUrl.isNotEmpty
-                                              ? CircleAvatar(
-                                                  backgroundImage: NetworkImage(photoUrl),
-                                                  radius: 28,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                )
-                                              : CircleAvatar(
-                                                  radius: 28,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                  child: Icon(Icons.person, size: 32, color: Colors.purple.shade100),
-                                                ),
-                                          SizedBox(height: 8),
-                                          Text(barber.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                                          Flexible(child: Text(barber.specialty, style: TextStyle(fontSize: 12, color: Colors.grey), overflow: TextOverflow.ellipsis, maxLines: 1)),
-                                          SizedBox(height: 4),
-                                          Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: barber.status == 'Available' ? Colors.green.shade100 : Colors.red.shade100,
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              barber.status,
-                                              style: TextStyle(
-                                                color: barber.status == 'Available' ? Colors.green : Colors.red,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(14.0),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 56,
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.blue.shade200, width: 2),
+                                          ),
+                                          child: ClipOval(
+                                            child: barber.photo.isNotEmpty
+                                                ? Image.network(
+                                                    photoUrl,
+                                                    width: 56,
+                                                    height: 56,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return Icon(Icons.person, size: 32, color: Colors.purple.shade100);
+                                                    },
+                                                  )
+                                                : Icon(Icons.person, size: 32, color: Colors.purple.shade100),
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text(barber.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                        Flexible(child: Text(barber.specialty, style: TextStyle(fontSize: 13, color: Colors.grey), overflow: TextOverflow.ellipsis, maxLines: 1)),
+                                        SizedBox(height: 6),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: barber.status == 'Available' ? Colors.green.shade50 : Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Text(
+                                            barber.status,
+                                            style: TextStyle(
+                                              color: barber.status == 'Available' ? Colors.green.shade700 : Colors.red.shade700,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );
                               },
                             ),
             ),
-            SizedBox(height: 32),
-            Text('Booking Saya', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-            SizedBox(height: 12),
+            SizedBox(height: 36),
+            Text('Booking Saya', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+            SizedBox(height: 16),
             loadingBooking
                 ? Center(child: CircularProgressIndicator())
                 : errorBooking != null
@@ -224,25 +238,34 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? Center(child: Text('Belum ada booking'))
                         : Column(
                             children: bookings.map((booking) {
-                              return Card(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                elevation: 3,
-                                margin: EdgeInsets.only(bottom: 16),
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 18),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
                                 child: ListTile(
                                   leading: Icon(Icons.event_note, color: Colors.blue.shade700, size: 36),
-                                  title: Text('Tanggal: ${booking.bookingDate}'),
+                                  title: Text('Tanggal: ${booking.bookingDate}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                   subtitle: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Jam: ${booking.bookingTime}'),
-                                      Text('Status: ${booking.status}', style: TextStyle(color: booking.status == 'pending' ? Colors.orange : Colors.green)),
-                                      Text('Barber ID: ${booking.barberId}'),
+                                      Text('Jam: ${booking.bookingTime}', style: TextStyle(fontSize: 14)),
+                                      Text('Status: ${booking.status}', style: TextStyle(color: booking.status == 'pending' ? Colors.orange : Colors.green, fontSize: 14)),
+                                      Text('Barber ID: ${booking.barberId}', style: TextStyle(fontSize: 13, color: Colors.grey)),
                                     ],
                                   ),
                                   trailing: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text('Rp${booking.amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                                      Text('Rp${booking.amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900, fontSize: 15)),
                                       SizedBox(height: 4),
                                       booking.paymentStatus == 'unpaid'
                                           ? Icon(Icons.close, color: Colors.red, size: 18)
@@ -253,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }).toList(),
                           ),
-            SizedBox(height: 32),
+            SizedBox(height: 36),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

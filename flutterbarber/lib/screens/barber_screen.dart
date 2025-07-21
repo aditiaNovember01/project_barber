@@ -37,50 +37,95 @@ class _BarberScreenState extends State<BarberScreen> {
           return ListView.separated(
             padding: EdgeInsets.all(16),
             itemCount: barbers.length,
-            separatorBuilder: (_, __) => SizedBox(height: 16),
+            separatorBuilder: (_, __) => SizedBox(height: 20),
             itemBuilder: (context, index) {
               final barber = barbers[index];
-              String baseUrl = 'http://192.168.1.11:8000';
+              String baseUrl = 'http://10.176.85.163:8000';
               String photoUrl = '';
               if (barber.photo.isNotEmpty) {
                 if (barber.photo.startsWith('http')) {
                   photoUrl = barber.photo;
-                } else if (barber.photo.contains('storage/')) {
-                  photoUrl = '$baseUrl/${barber.photo.startsWith('/') ? barber.photo.substring(1) : barber.photo}';
-                } else if (barber.photo.contains('barbers/')) {
-                  photoUrl = '$baseUrl/storage/${barber.photo.startsWith('/') ? barber.photo.substring(1) : barber.photo}';
                 } else {
                   photoUrl = '$baseUrl/storage/barbers/${barber.photo}';
                 }
+                print('Barber object: ' + barber.toString());
+                print('Barber photo: ${barber.photo}');
+                print('Photo URL: $photoUrl');
               }
-              return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
-                child: ListTile(
-                  contentPadding: EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(photoUrl),
-                    radius: 28,
-                  ),
-                  title: Text(barber.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 12,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(barber.specialty, style: TextStyle(fontSize: 13, color: Colors.grey)),
-                      SizedBox(height: 4),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        width: 64,
+                        height: 64,
                         decoration: BoxDecoration(
-                          color: barber.status == 'Available' ? Colors.green.shade100 : Colors.red.shade100,
-                          borderRadius: BorderRadius.circular(8),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.blue.shade200, width: 3),
                         ),
-                        child: Text(
-                          barber.status,
-                          style: TextStyle(
-                            color: barber.status == 'Available' ? Colors.green : Colors.red,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: ClipOval(
+                          child: barber.photo.isNotEmpty
+                              ? Image.network(
+                                  photoUrl,
+                                  width: 64,
+                                  height: 64,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print('Image load error for $photoUrl: $error');
+                                    return Icon(Icons.person, size: 40, color: Colors.purple.shade100);
+                                  },
+                                )
+                              : Icon(Icons.person, size: 40, color: Colors.purple.shade100),
+                        ),
+                      ),
+                      SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              barber.name,
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.blue.shade900),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              barber.specialty,
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: barber.status == 'Available' ? Colors.green.shade50 : Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    barber.status,
+                                    style: TextStyle(
+                                      color: barber.status == 'Available' ? Colors.green.shade700 : Colors.red.shade700,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],

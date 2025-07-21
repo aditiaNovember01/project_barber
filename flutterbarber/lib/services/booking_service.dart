@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class BookingService {
-  static const String baseUrl = 'http://192.168.1.11:8000/api/bookings';
+  static const String baseUrl = 'http://10.176.85.163:8000/api/bookings';
 
   static Future<List<Booking>> fetchBookings() async {
     final response = await http.get(Uri.parse(baseUrl));

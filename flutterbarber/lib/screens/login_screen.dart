@@ -33,69 +33,74 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            elevation: 10,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
             margin: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            color: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(36.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.cut, size: 48, color: Colors.blue.shade700),
-                    SizedBox(height: 16),
-                    Text('Login', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-                    SizedBox(height: 32),
+                    Icon(Icons.cut, size: 54, color: Colors.blue.shade700),
+                    SizedBox(height: 18),
+                    Text('Login', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                    SizedBox(height: 36),
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.email),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.blue.shade50,
+                        contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (val) => val == null || val.isEmpty ? 'Masukkan email' : null,
                       onChanged: (val) => _email = val,
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 18),
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.blue.shade50,
+                        contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                       ),
                       obscureText: true,
                       validator: (val) => val == null || val.isEmpty ? 'Masukkan password' : null,
                       onChanged: (val) => _password = val,
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 28),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          padding: EdgeInsets.symmetric(vertical: 18),
+                          textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         onPressed: _loading ? null : _submit,
                         child: _loading
-                            ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : Text('Login', style: TextStyle(fontSize: 18)),
+                            ? SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                            : Text('Login'),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 18),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.blue.shade700,
                           side: BorderSide(color: Colors.blue.shade700),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          padding: EdgeInsets.symmetric(vertical: 18),
+                          textStyle: TextStyle(fontSize: 18),
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -103,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             MaterialPageRoute(builder: (context) => RegisterScreen()),
                           );
                         },
-                        child: Text('Belum punya akun? Daftar', style: TextStyle(fontSize: 16)),
+                        child: Text('Belum punya akun? Daftar'),
                       ),
                     ),
                   ],

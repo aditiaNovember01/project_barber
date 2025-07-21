@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://192.168.1.11:8000/api/login';
-  static const String registerUrl = 'http://192.168.1.11:8000/api/register';
+  static const String baseUrl = 'http://10.176.85.163:8000/api/login';
+  static const String registerUrl = 'http://10.176.85.163:8000/api/register';
 
   static Future<bool> login(String email, String password) async {
     final response = await http.post(
