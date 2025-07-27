@@ -57,12 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _fetchBarbers() async {
+  Future<void> _fetchBarbers() async {
     setState(() { loadingBarber = true; errorBarber = null; });
     try {
       final data = await BarberService.fetchBarbers();
       print('DEBUG barbers: ' + data.map((b) => ' [33m${b.name} (${b.status}) [0m').join(', '));
-      final activeCount = data.where((b) => b.status.toLowerCase() == 'aktive').length;
+      final activeCount = data.where((b) => b.status.toLowerCase() == 'active').length;
       setState(() {
         barbers = data;
         _barberActiveCount = activeCount;
@@ -72,27 +72,25 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Error fetchBarbers: $e');
       setState(() { loadingBarber = false; errorBarber = 'Gagal memuat data barber'; });
     }
+    return;
   }
 
-  void _fetchBookings() async {
+  Future<void> _fetchBookings() async {
     setState(() { loadingBooking = true; errorBooking = null; });
     try {
       final userId = await AuthService.getUserId();
-      final data = await BookingService.fetchBookings(userId: userId);
-      final now = DateTime.now();
-      final thisMonthBookings = data.where((b) {
-        final date = DateTime.tryParse(b.bookingDate);
-        return date != null && date.year == now.year && date.month == now.month;
-      }).toList();
+      final data = await BookingService.fetchBookings(); // ambil semua booking
+      final userBookings = data.where((b) => b.userId == userId).toList();
       setState(() {
         bookings = data;
-        _bookingCountThisMonth = thisMonthBookings.length;
+        _bookingCountThisMonth = userBookings.length;
         loadingBooking = false;
       });
     } catch (e) {
       print('Error fetchBookings: $e');
       setState(() { loadingBooking = false; errorBooking = 'Gagal memuat data booking'; });
     }
+    return;
   }
 
   @override
@@ -113,26 +111,33 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            _fetchBarbers(),
+            _fetchBookings(),
+          ]);
+        },
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
           // Header Card Profil
           Container(
             margin: EdgeInsets.fromLTRB(16, 36, 16, 18),
             child: Card(
-              elevation: 8,
+              elevation: 6,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 32,
+                      radius: 36,
                       backgroundColor: Colors.blue.shade100,
-                      child: Icon(Icons.person, color: Colors.blue, size: 38),
+                      child: Icon(Icons.person, color: Colors.blue, size: 40),
                     ),
-                    SizedBox(width: 18),
+                    SizedBox(width: 22),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,21 +173,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.shade100,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 18),
                 child: Row(
-          children: [
-                    Icon(Icons.celebration, color: Colors.white, size: 48),
+                  children: [
+                    Icon(Icons.celebration, color: Colors.white, size: 44),
                     SizedBox(width: 18),
                     Expanded(
                       child: Text(
                         'Booking barber kini lebih mudah dan cepat! Yuk, pilih barber favoritmu atau cek promo menarik.',
-                        style: TextStyle(fontSize: 17, color: Colors.white, fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
                       ),
-                                      ),
-                                    ],
-                                  ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -193,18 +205,18 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Expanded(
                   child: Card(
-                    elevation: 4,
+                    elevation: 3,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                     color: Colors.white,
-                                  child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-                                    child: Column(
-                                      children: [
-                          Icon(Icons.event_available, color: Colors.blue.shade700, size: 32),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                      child: Column(
+                        children: [
+                          Icon(Icons.event_available, color: Colors.blue.shade700, size: 36),
                           SizedBox(height: 8),
-                          Text('Booking Bulan Ini', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                          Text('Total Booking Saya', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                           SizedBox(height: 2),
-                          Text('$_bookingCountThisMonth', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.blue.shade900)),
+                          Text('$_bookingCountThisMonth', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.blue.shade900)),
                         ],
                       ),
                     ),
@@ -213,48 +225,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(width: 16),
                 Expanded(
                   child: Card(
-                    elevation: 4,
+                    elevation: 3,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                     color: Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
                       child: Column(
                         children: [
-                          Icon(Icons.people, color: Colors.orange.shade400, size: 32),
+                          Icon(Icons.people, color: Colors.orange.shade400, size: 36),
                           SizedBox(height: 8),
                           Text('Barber Aktif', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                           SizedBox(height: 2),
-                          Text('$_barberActiveCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.orange.shade700)),
+                          Text('$_barberActiveCount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.orange.shade700)),
                         ],
                       ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Card Promo/Tips
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
             child: Card(
-              elevation: 5,
+              elevation: 4,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               color: Colors.yellow.shade50,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 18),
+                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                 child: Row(
                   children: [
-                    Icon(Icons.local_offer, color: Colors.orange.shade400, size: 38),
-                    SizedBox(width: 18),
+                    Icon(Icons.local_offer, color: Colors.orange.shade400, size: 30),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Text(
                         'Promo Spesial! Booking 3x bulan ini, dapatkan potongan 20% untuk booking berikutnya.',
-                        style: TextStyle(fontSize: 15, color: Colors.orange.shade900, fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 14, color: Colors.orange.shade900, fontWeight: FontWeight.w600),
                       ),
                     ),
-                                    ],
-                                  ),
-                                ),
+                  ],
+                ),
+              ),
             ),
           ),
           // Tombol Aksi Besar
@@ -267,11 +279,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => BarberScreen()));
                   },
                   child: Card(
-                    elevation: 7,
+                    elevation: 6,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                     child: Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 18),
+                      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 18),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(22),
                         gradient: LinearGradient(
@@ -282,38 +294,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.blue.shade100,
-                            blurRadius: 16,
-                            offset: Offset(0, 8),
-                ),
-              ],
-            ),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: Row(
-              children: [
-                          Icon(Icons.people_alt_rounded, color: Colors.white, size: 44),
-                          SizedBox(width: 24),
+                        children: [
+                          Icon(Icons.people_alt_rounded, color: Colors.white, size: 40),
+                          SizedBox(width: 22),
                           Expanded(
                             child: Text(
                               'Lihat Barber',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.1),
                             ),
                           ),
-                          Icon(Icons.arrow_forward_ios, color: Colors.white, size: 28),
+                          Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                         ],
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: 28),
+                SizedBox(height: 24),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => BookingScreen()));
                   },
                   child: Card(
-                    elevation: 7,
+                    elevation: 6,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                     child: Container(
                       width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 18),
+                      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 18),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(22),
                         gradient: LinearGradient(
@@ -324,22 +336,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.orange.shade100,
-                            blurRadius: 16,
-                            offset: Offset(0, 8),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.event_note_rounded, color: Colors.white, size: 44),
-                          SizedBox(width: 24),
+                          Icon(Icons.event_note_rounded, color: Colors.white, size: 40),
+                          SizedBox(width: 22),
                           Expanded(
                             child: Text(
                               'Lihat Booking',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.2),
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.1),
                             ),
                           ),
-                          Icon(Icons.arrow_forward_ios, color: Colors.white, size: 28),
+                          Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
                         ],
                       ),
                     ),
@@ -350,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: 60),
           ],
+        ),
       ),
     );
   }

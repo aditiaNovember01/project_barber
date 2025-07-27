@@ -27,6 +27,10 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   String? _proofOfPaymentName;
   int _bookingCountThisMonth = 0;
   bool _promoActive = false;
+  bool _jamError = false;
+  bool _barberError = false;
+  bool _dateError = false;
+  bool _amountError = false;
 
   @override
   void initState() {
@@ -57,20 +61,55 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     });
   }
 
+  void showErrorDialog(BuildContext context, String title, String message, {IconData icon = Icons.error, Color color = Colors.red, String buttonText = 'Tutup'}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(icon, color: color, size: 32),
+            SizedBox(width: 10),
+            Text(title),
+          ],
+        ),
+        content: Text(message, style: TextStyle(fontSize: 16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(buttonText, style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedBarberId == null || _selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lengkapi semua data booking!')));
+      setState(() {
+        _barberError = _selectedBarberId == null;
+        _dateError = _selectedDate == null;
+        _jamError = _selectedTime == null;
+        _amountError = _amount == null || _amount!.isEmpty;
+      });
+      showErrorDialog(context, 'Data Belum Lengkap', 'Lengkapi semua data booking terlebih dahulu.', icon: Icons.info_outline, color: Colors.blue);
+      return;
+    }
+    // Validasi status barber aktif
+    final selectedBarber = _barbers.firstWhere((b) => b.id == _selectedBarberId, orElse: () => Barber(id: 0, name: '', photo: '', specialty: '', status: ''));
+    if (selectedBarber.status.toLowerCase() != 'active') {
+      showErrorDialog(context, 'Barber Tidak Aktif', 'Maaf, barber yang Anda pilih sedang tidak aktif dan tidak dapat menerima booking saat ini. Silakan pilih barber lain.', icon: Icons.block, color: Colors.red, buttonText: 'Pilih Barber Lain');
       return;
     }
     // Validasi upload bukti pembayaran
     if (kIsWeb) {
       if (_proofOfPaymentBytes == null || _proofOfPaymentName == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload bukti pembayaran dulu!')));
+        showErrorDialog(context, 'Bukti Pembayaran', 'Upload bukti pembayaran terlebih dahulu.', icon: Icons.info_outline, color: Colors.blue);
         return;
       }
     } else {
       if (_proofOfPaymentPath == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload bukti pembayaran dulu!')));
+        showErrorDialog(context, 'Bukti Pembayaran', 'Upload bukti pembayaran terlebih dahulu.', icon: Icons.info_outline, color: Colors.blue);
         return;
       }
     }
@@ -78,7 +117,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     final userId = await AuthService.getUserId();
     if (userId == null) {
       setState(() { _loading = false; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User tidak ditemukan. Silakan login ulang.')));
+      showErrorDialog(context, 'User Tidak Ditemukan', 'User tidak ditemukan. Silakan login ulang.', icon: Icons.error_outline, color: Colors.red);
       return;
     }
     // Ambil semua booking (tanpa filter userId)
@@ -96,9 +135,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       return (selectedTime - bTime).inMinutes.abs() < 60;
     });
     if (conflict) {
-      setState(() { _loading = false; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Barber sudah ada booking lain dalam rentang 1 jam!')));
+      setState(() { _loading = false; _jamError = true; });
+      showErrorDialog(context, 'Jadwal Tidak Tersedia', 'Barber sudah ada booking lain dalam rentang 1 jam pada tanggal & jam yang dipilih. Silakan pilih jam lain.', icon: Icons.error_outline, color: Colors.orange, buttonText: 'Pilih Jam Lain');
       return;
+    } else {
+      setState(() { _jamError = false; });
     }
     // Hitung amount dengan promo jika aktif
     double amountValue = double.tryParse(_amount ?? '0') ?? 0;
@@ -131,7 +172,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       Navigator.pop(context);
     } else {
       String msg = result['message'] ?? 'Booking gagal! Cek koneksi atau data.';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      showErrorDialog(context, 'Booking Gagal', msg, icon: Icons.error_outline, color: Colors.red);
     }
   }
 
@@ -143,12 +184,12 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       body: Center(
         child: SingleChildScrollView(
           child: Card(
-            elevation: 10,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             margin: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             color: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.all(36.0),
+              padding: const EdgeInsets.all(40.0),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -157,7 +198,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                     Icon(Icons.event_available, size: 54, color: Colors.blue.shade700),
                     SizedBox(height: 18),
                     Text('Booking Baru', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-                    SizedBox(height: 36),
+                    SizedBox(height: 32),
+                    Divider(thickness: 1, color: Colors.blue.shade50),
+                    SizedBox(height: 18),
                     DropdownButtonFormField<int>(
                       value: _selectedBarberId,
                       items: _barbers.isEmpty
@@ -196,15 +239,15 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                     SizedBox(height: 8),
                     ListTile(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      tileColor: Colors.blue.shade50,
-                      title: Text(_selectedTime == null ? 'Pilih Jam' : _selectedTime!.format(context), style: TextStyle(fontSize: 16)),
-                      trailing: Icon(Icons.access_time, color: Colors.blue.shade700),
+                      tileColor: _jamError ? Colors.red.shade50 : Colors.blue.shade50,
+                      title: Text(_selectedTime == null ? 'Pilih Jam' : _selectedTime!.format(context), style: TextStyle(fontSize: 16, color: _jamError ? Colors.red : null)),
+                      trailing: Icon(Icons.access_time, color: _jamError ? Colors.red : Colors.blue.shade700),
                       onTap: () async {
                         final picked = await showTimePicker(
                           context: context,
                           initialTime: TimeOfDay.now(),
                         );
-                        if (picked != null) setState(() => _selectedTime = picked);
+                        if (picked != null) setState(() { _selectedTime = picked; _jamError = false; });
                       },
                     ),
                     SizedBox(height: 8),
@@ -221,21 +264,23 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       validator: (val) => val == null || val.isEmpty ? 'Isi jumlah' : null,
                       onChanged: (val) => _amount = val,
                     ),
-                    SizedBox(height: 28),
+                    SizedBox(height: 24),
+                    Divider(thickness: 1, color: Colors.blue.shade50),
+                    SizedBox(height: 18),
                     if (_promoActive)
                       Container(
-                        margin: EdgeInsets.only(bottom: 12),
-                        padding: EdgeInsets.all(14),
+                        margin: EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.yellow.shade100,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.orange.shade200),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.orange.shade100),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.local_offer, color: Colors.orange.shade400),
-                            SizedBox(width: 10),
-                            Expanded(child: Text('Promo aktif! Diskon 20% untuk booking ke-${_bookingCountThisMonth + 1} bulan ini.', style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold))),
+                            Icon(Icons.local_offer, color: Colors.orange.shade400, size: 18),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('Promo aktif! Diskon 20% untuk booking ke-${_bookingCountThisMonth + 1} bulan ini.', style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 13))),
                           ],
                         ),
                       ),
@@ -296,7 +341,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                                   ],
                                 )),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 18),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
