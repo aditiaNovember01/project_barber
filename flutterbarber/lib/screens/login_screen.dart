@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  final VoidCallback? onLoginSuccess;
+  const LoginScreen({Key? key, this.onLoginSuccess}) : super(key: key);
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -20,7 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() { _loading = false; });
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login berhasil!')));
-      Navigator.pop(context);
+      if (widget.onLoginSuccess != null) {
+        widget.onLoginSuccess!();
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login gagal!')));
     }

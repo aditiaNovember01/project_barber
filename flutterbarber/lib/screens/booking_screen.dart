@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/booking.dart';
 import '../services/booking_service.dart';
+import '../services/auth_service.dart';
 
 class BookingScreen extends StatefulWidget {
   @override
@@ -13,7 +14,14 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
-    futureBookings = BookingService.fetchBookings();
+    _loadBookings();
+  }
+
+  void _loadBookings() async {
+    final userId = await AuthService.getUserId();
+    setState(() {
+      futureBookings = BookingService.fetchBookings(userId: userId);
+    });
   }
 
   @override

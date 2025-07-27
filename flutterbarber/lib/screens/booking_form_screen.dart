@@ -6,6 +6,7 @@ import '../models/barber.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import '../services/auth_service.dart';
 
 class BookingFormScreen extends StatefulWidget {
   @override
@@ -24,17 +25,35 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   // Tambahan untuk web
   Uint8List? _proofOfPaymentBytes;
   String? _proofOfPaymentName;
+  int _bookingCountThisMonth = 0;
+  bool _promoActive = false;
 
   @override
   void initState() {
     super.initState();
     _fetchBarbers();
+    _checkPromo();
   }
 
   void _fetchBarbers() async {
     final barbers = await BarberService.fetchBarbers();
     setState(() {
       _barbers = barbers;
+    });
+  }
+
+  void _checkPromo() async {
+    final userId = await AuthService.getUserId();
+    if (userId == null) return;
+    final allBookings = await BookingService.fetchBookings(userId: userId);
+    final now = DateTime.now();
+    final thisMonthBookings = allBookings.where((b) {
+      final date = DateTime.tryParse(b.bookingDate);
+      return date != null && date.year == now.year && date.month == now.month;
+    }).toList();
+    setState(() {
+      _bookingCountThisMonth = thisMonthBookings.length;
+      _promoActive = _bookingCountThisMonth >= 3;
     });
   }
 
@@ -56,32 +75,63 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       }
     }
     setState(() { _loading = true; });
+    final userId = await AuthService.getUserId();
+    if (userId == null) {
+      setState(() { _loading = false; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User tidak ditemukan. Silakan login ulang.')));
+      return;
+    }
+    // Ambil semua booking (tanpa filter userId)
+    final allBookings = await BookingService.fetchBookings();
+    final selectedDateStr = _selectedDate!.toIso8601String().split('T')[0];
+    final selectedTime = Duration(hours: _selectedTime!.hour, minutes: _selectedTime!.minute);
+    final conflict = allBookings.any((b) {
+      if (b.bookingDate != selectedDateStr) return false;
+      if (b.barberId != _selectedBarberId) return false;
+      final parts = b.bookingTime.split(':');
+      if (parts.length < 2) return false;
+      final bHour = int.tryParse(parts[0]) ?? 0;
+      final bMinute = int.tryParse(parts[1]) ?? 0;
+      final bTime = Duration(hours: bHour, minutes: bMinute);
+      return (selectedTime - bTime).inMinutes.abs() < 60;
+    });
+    if (conflict) {
+      setState(() { _loading = false; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Barber sudah ada booking lain dalam rentang 1 jam!')));
+      return;
+    }
+    // Hitung amount dengan promo jika aktif
+    double amountValue = double.tryParse(_amount ?? '0') ?? 0;
+    if (_promoActive) {
+      amountValue = (amountValue * 0.8).roundToDouble();
+    }
     final bookingData = {
-      'user_id': 1, // Ganti dengan user login jika ada
+      'user_id': userId,
       'barber_id': _selectedBarberId,
-      'booking_date': _selectedDate!.toIso8601String().split('T')[0],
-      'booking_time': _selectedTime!.format(context),
+      'booking_date': selectedDateStr,
+      'booking_time': _selectedTime!.hour.toString().padLeft(2, '0') + ':' + _selectedTime!.minute.toString().padLeft(2, '0'),
       'status': 'pending',
-      'amount': _amount ?? '0',
+      'amount': amountValue.toStringAsFixed(0),
       'payment_status': 'unpaid',
       'proof_of_payment': '',
     };
-    bool success = false;
+    Map<String, dynamic> result;
     if (kIsWeb) {
-      success = await BookingService.createBooking(
+      result = await BookingService.createBooking(
         bookingData,
         fileBytes: _proofOfPaymentBytes,
         fileName: _proofOfPaymentName,
       );
     } else {
-      success = await BookingService.createBooking(bookingData, filePath: _proofOfPaymentPath);
+      result = await BookingService.createBooking(bookingData, filePath: _proofOfPaymentPath);
     }
     setState(() { _loading = false; });
-    if (success) {
+    if (result['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking berhasil!')));
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Booking gagal! Cek koneksi atau data.')));
+      String msg = result['message'] ?? 'Booking gagal! Cek koneksi atau data.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
 
@@ -172,6 +222,23 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       onChanged: (val) => _amount = val,
                     ),
                     SizedBox(height: 28),
+                    if (_promoActive)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow.shade100,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.orange.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.local_offer, color: Colors.orange.shade400),
+                            SizedBox(width: 10),
+                            Expanded(child: Text('Promo aktif! Diskon 20% untuk booking ke-${_bookingCountThisMonth + 1} bulan ini.', style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade100,

@@ -40,7 +40,7 @@ class _BarberScreenState extends State<BarberScreen> {
             separatorBuilder: (_, __) => SizedBox(height: 20),
             itemBuilder: (context, index) {
               final barber = barbers[index];
-              String baseUrl = 'http://10.176.85.163:8000';
+              String baseUrl = 'http://192.168.1.22:8000';
               String photoUrl = '';
               if (barber.photo.isNotEmpty) {
                 if (barber.photo.startsWith('http')) {

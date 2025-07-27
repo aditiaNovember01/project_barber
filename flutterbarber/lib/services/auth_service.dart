@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://10.176.85.163:8000/api/login';
-  static const String registerUrl = 'http://10.176.85.163:8000/api/register';
+  static const String baseUrl = 'http://192.168.1.22:8000/api/login';
+  static const String registerUrl = 'http://192.168.1.22:8000/api/register';
 
   static Future<bool> login(String email, String password) async {
     final response = await http.post(
@@ -19,11 +19,16 @@ class AuthService {
     if (response.statusCode == 200) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('loggedIn', true);
-      // Ambil nama user dari response jika ada
+      // Ambil nama user dan userId dari response jika ada
       try {
         final data = json.decode(response.body);
-        if (data['user'] != null && data['user']['name'] != null) {
-          await prefs.setString('userName', data['user']['name']);
+        if (data['user'] != null) {
+          if (data['user']['name'] != null) {
+            await prefs.setString('userName', data['user']['name']);
+          }
+          if (data['user']['id'] != null) {
+            await prefs.setInt('userId', data['user']['id']);
+          }
         }
       } catch (_) {}
       return true;
@@ -97,10 +102,16 @@ class AuthService {
     return prefs.getBool('loggedIn') ?? false;
   }
 
+  static Future<int?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('userId');
+  }
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('loggedIn');
     await prefs.remove('userName');
+    await prefs.remove('userId');
   }
 
   static Future<String?> getUserName() async {

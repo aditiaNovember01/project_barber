@@ -63,7 +63,7 @@ class _LoginWrapperState extends State<LoginWrapper> {
     if (_loggedIn!) {
       return HomeScreen(onLogout: _onLogout);
     } else {
-      return LoginScreen();
+      return LoginScreen(onLoginSuccess: _onLoginSuccess);
     }
   }
 }
